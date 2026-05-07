@@ -1,0 +1,1449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dipanshu Garg</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet"/>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #0b0e14; font-family: 'DM Mono', monospace; }
+
+    /* ── PASSWORD GATE ── */
+    #gate {
+      position: fixed;
+      inset: 0;
+      background: #0b0e14;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      gap: 1.5rem;
+    }
+    #gate .logo {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 2rem;
+      font-weight: 300;
+      color: #7eb8f7;
+      letter-spacing: 0.08em;
+      margin-bottom: 0.5rem;
+    }
+    #gate .subtitle {
+      font-size: 0.65rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #3d4d63;
+      margin-bottom: 1rem;
+    }
+    #gate input {
+      background: #181e2a;
+      border: 1px solid rgba(100,140,200,0.15);
+      border-radius: 4px;
+      color: #d6e0f0;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.82rem;
+      padding: 0.85rem 1.4rem;
+      width: 280px;
+      outline: none;
+      letter-spacing: 0.08em;
+      text-align: center;
+      transition: border-color 0.2s;
+    }
+    #gate input:focus { border-color: rgba(91,141,238,0.5); }
+    #gate input::placeholder { color: #3d4d63; }
+    #gate button {
+      background: #5b8dee;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      padding: 0.85rem 2rem;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      cursor: pointer;
+      width: 280px;
+      transition: background 0.2s, box-shadow 0.2s;
+    }
+    #gate button:hover {
+      background: #7eb8f7;
+      box-shadow: 0 0 20px rgba(91,141,238,0.3);
+    }
+    #gate .error {
+      color: #e05c5c;
+      font-size: 0.65rem;
+      letter-spacing: 0.1em;
+      height: 16px;
+    }
+    #gate .lock-icon { font-size: 2rem; margin-bottom: 0.5rem; }
+
+    /* ── MAIN SITE (hidden until unlocked) ── */
+    #site { display: none; }
+    :root {
+      --bg: #0b0e14;
+      --bg2: #10141c;
+      --bg3: #141922;
+      --surface: #181e2a;
+      --surface2: #1e2636;
+      --border: rgba(100,140,200,0.12);
+      --accent: #5b8dee;
+      --accent2: #7eb8f7;
+      --accent-glow: rgba(91,141,238,0.18);
+      --text: #d6e0f0;
+      --text-muted: #6e7f9a;
+      --text-dim: #3d4d63;
+      --gold: #c9a96e;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Mono', monospace;
+      font-size: 14px;
+      line-height: 1.7;
+      overflow-x: hidden;
+    }
+
+    /* ── NOISE OVERLAY ── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.5;
+    }
+
+    /* ── STAR FIELD ── */
+    .stars {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+    .star {
+      position: absolute;
+      border-radius: 50%;
+      background: white;
+      animation: twinkle var(--d, 4s) ease-in-out infinite var(--delay, 0s);
+    }
+    @keyframes twinkle {
+      0%, 100% { opacity: var(--min-op, 0.1); transform: scale(1); }
+      50% { opacity: var(--max-op, 0.7); transform: scale(1.3); }
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.2rem 4rem;
+      background: rgba(11,14,20,0.7);
+      backdrop-filter: blur(18px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-logo {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.3rem;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      color: var(--accent2);
+    }
+    .nav-links {
+      display: flex;
+      gap: 2.5rem;
+      list-style: none;
+    }
+    .nav-links a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.72rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--accent2); }
+
+    /* ── WRAPPER ── */
+    main { position: relative; z-index: 1; }
+
+    /* ── HERO ── */
+    #hero {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      padding: 8rem 4rem 4rem;
+      position: relative;
+    }
+    .hero-glow {
+      position: absolute;
+      width: 700px; height: 700px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(91,141,238,0.07) 0%, transparent 70%);
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+    }
+    .hero-inner {
+      display: flex;
+      align-items: center;
+      gap: 5rem;
+      max-width: 1100px;
+      margin: 0 auto;
+      width: 100%;
+    }
+    .hero-photo {
+      flex-shrink: 0;
+      width: 200px; height: 200px;
+      border-radius: 50%;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 4rem;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 0 60px rgba(91,141,238,0.12);
+    }
+    .hero-photo::after {
+      content: '';
+      position: absolute;
+      inset: -2px;
+      border-radius: 50%;
+      background: conic-gradient(from 0deg, transparent 60%, var(--accent) 100%);
+      animation: spin 6s linear infinite;
+      z-index: -1;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .hero-photo-inner {
+      width: 196px; height: 196px;
+      border-radius: 50%;
+      background: var(--surface);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 4.5rem;
+      z-index: 1;
+    }
+    .hero-text { flex: 1; }
+    .hero-eyebrow {
+      font-size: 0.68rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 0.8rem;
+      display: flex; align-items: center; gap: 0.7rem;
+    }
+    .hero-eyebrow::before {
+      content: '';
+      display: block;
+      width: 30px; height: 1px;
+      background: var(--accent);
+    }
+    h1 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(3rem, 6vw, 5rem);
+      font-weight: 300;
+      line-height: 1.05;
+      letter-spacing: -0.01em;
+      color: #e8f0ff;
+      margin-bottom: 1rem;
+    }
+    h1 span { color: var(--accent2); }
+    .hero-desc {
+      color: var(--text-muted);
+      font-size: 0.82rem;
+      line-height: 1.9;
+      max-width: 520px;
+      margin-bottom: 2rem;
+    }
+    .hero-tags {
+      display: flex; flex-wrap: wrap; gap: 0.6rem;
+      margin-bottom: 2.2rem;
+    }
+    .tag {
+      padding: 0.3rem 0.85rem;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      font-size: 0.65rem;
+      letter-spacing: 0.1em;
+      color: var(--text-muted);
+      background: var(--surface);
+      text-transform: uppercase;
+    }
+    .tag.accent { border-color: rgba(91,141,238,0.35); color: var(--accent2); background: rgba(91,141,238,0.07); }
+    .hero-cta {
+      display: flex; gap: 1rem; align-items: center;
+    }
+    .btn {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      padding: 0.75rem 1.6rem;
+      border-radius: 4px;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.25s;
+    }
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+      border: 1px solid var(--accent);
+    }
+    .btn-primary:hover { background: var(--accent2); border-color: var(--accent2); box-shadow: 0 0 20px rgba(91,141,238,0.35); }
+    .btn-ghost {
+      background: transparent;
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+    }
+    .btn-ghost:hover { border-color: var(--accent); color: var(--accent2); }
+
+    /* ── SECTIONS ── */
+    section {
+      padding: 6rem 4rem;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    .section-label {
+      font-size: 0.65rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 0.5rem;
+      display: flex; align-items: center; gap: 0.7rem;
+    }
+    .section-label::before {
+      content: '';
+      width: 20px; height: 1px;
+      background: var(--accent);
+    }
+    h2 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(2rem, 4vw, 2.8rem);
+      font-weight: 400;
+      color: #e8f0ff;
+      margin-bottom: 3rem;
+      line-height: 1.15;
+    }
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 0 4rem;
+    }
+
+    /* ── ABOUT ── */
+    .about-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 4rem;
+      align-items: start;
+    }
+    .about-text p {
+      color: var(--text-muted);
+      font-size: 0.82rem;
+      line-height: 1.95;
+      margin-bottom: 1.2rem;
+    }
+    .about-text p strong { color: var(--text); font-weight: 400; }
+    .about-stats {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.4rem 1.6rem;
+      transition: border-color 0.25s, box-shadow 0.25s;
+    }
+    .stat-card:hover {
+      border-color: rgba(91,141,238,0.3);
+      box-shadow: 0 4px 30px rgba(91,141,238,0.08);
+    }
+    .stat-num {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 2.2rem;
+      font-weight: 300;
+      color: var(--accent2);
+      line-height: 1;
+      margin-bottom: 0.2rem;
+    }
+    .stat-label { color: var(--text-muted); font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase; }
+
+    /* ── SKILLS ── */
+    .skills-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+    }
+    .skill-group {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.6rem;
+      transition: border-color 0.25s, transform 0.25s;
+    }
+    .skill-group:hover {
+      border-color: rgba(91,141,238,0.3);
+      transform: translateY(-2px);
+    }
+    .skill-group-title {
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      color: var(--accent);
+      margin-bottom: 1rem;
+    }
+    .skill-list {
+      display: flex; flex-wrap: wrap; gap: 0.4rem;
+    }
+    .skill-item {
+      padding: 0.25rem 0.6rem;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      letter-spacing: 0.05em;
+    }
+
+    /* ── EXPERIENCE ── */
+    .timeline {
+      position: relative;
+      padding-left: 2rem;
+    }
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 0.5rem; bottom: 0;
+      width: 1px;
+      background: linear-gradient(to bottom, var(--accent), transparent);
+    }
+    .timeline-item {
+      position: relative;
+      margin-bottom: 3rem;
+      padding-left: 1.8rem;
+    }
+    .timeline-item::before {
+      content: '';
+      position: absolute;
+      left: -2.35rem; top: 0.45rem;
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 10px rgba(91,141,238,0.5);
+    }
+    .timeline-date {
+      font-size: 0.65rem;
+      letter-spacing: 0.1em;
+      color: var(--accent);
+      text-transform: uppercase;
+      margin-bottom: 0.4rem;
+    }
+    .timeline-role {
+      font-family: 'Syne', sans-serif;
+      font-size: 1rem;
+      font-weight: 600;
+      color: #e8f0ff;
+      margin-bottom: 0.2rem;
+    }
+    .timeline-org {
+      color: var(--text-muted);
+      font-size: 0.75rem;
+      margin-bottom: 0.7rem;
+    }
+    .timeline-desc {
+      color: var(--text-muted);
+      font-size: 0.78rem;
+      line-height: 1.8;
+    }
+
+    /* ── PROJECTS ── */
+    .projects-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+    }
+    .project-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 2rem;
+      transition: border-color 0.25s, box-shadow 0.25s, transform 0.25s;
+      cursor: pointer;
+      text-decoration: none;
+    }
+    .project-card:hover {
+      border-color: rgba(91,141,238,0.35);
+      box-shadow: 0 8px 40px rgba(91,141,238,0.1);
+      transform: translateY(-3px);
+    }
+    .project-icon {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+    }
+    .project-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #e8f0ff;
+      margin-bottom: 0.5rem;
+    }
+    .project-desc {
+      color: var(--text-muted);
+      font-size: 0.75rem;
+      line-height: 1.8;
+      margin-bottom: 1.2rem;
+    }
+    .project-tags {
+      display: flex; flex-wrap: wrap; gap: 0.4rem;
+    }
+    .project-tag {
+      padding: 0.2rem 0.55rem;
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      font-size: 0.62rem;
+      color: var(--text-dim);
+      letter-spacing: 0.06em;
+    }
+    .project-footer {
+      margin-top: 1.2rem;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.65rem;
+      color: var(--accent);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    /* ── INTERESTS ── */
+    .interests-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+    }
+    .interest-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.8rem;
+      transition: border-color 0.25s, transform 0.25s;
+    }
+    .interest-card:hover {
+      border-color: rgba(91,141,238,0.3);
+      transform: translateY(-2px);
+    }
+    .interest-icon { font-size: 1.8rem; margin-bottom: 0.8rem; }
+    .interest-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #e8f0ff;
+      margin-bottom: 0.5rem;
+    }
+    .interest-desc {
+      color: var(--text-muted);
+      font-size: 0.73rem;
+      line-height: 1.8;
+    }
+
+    /* ── BLOG / IDEAS ── */
+    .blog-feed {
+      display: flex;
+      flex-direction: column;
+      gap: 1.2rem;
+    }
+    .blog-post {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.6rem 2rem;
+      display: flex;
+      gap: 2rem;
+      align-items: flex-start;
+      transition: border-color 0.25s, box-shadow 0.25s;
+      cursor: pointer;
+    }
+    .blog-post:hover {
+      border-color: rgba(91,141,238,0.3);
+      box-shadow: 0 4px 24px rgba(91,141,238,0.07);
+    }
+    .blog-date {
+      flex-shrink: 0;
+      font-size: 0.6rem;
+      color: var(--text-dim);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding-top: 0.2rem;
+      width: 80px;
+    }
+    .blog-content { flex: 1; }
+    .blog-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #e8f0ff;
+      margin-bottom: 0.4rem;
+    }
+    .blog-snippet {
+      color: var(--text-muted);
+      font-size: 0.75rem;
+      line-height: 1.8;
+    }
+    .blog-tag {
+      display: inline-block;
+      margin-top: 0.8rem;
+      padding: 0.2rem 0.6rem;
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      font-size: 0.6rem;
+      color: var(--accent);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    /* ── LINKS ── */
+    .links-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.2rem;
+    }
+    .link-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.4rem 1.6rem;
+      text-decoration: none;
+      transition: border-color 0.25s, transform 0.25s;
+      display: block;
+    }
+    .link-card:hover {
+      border-color: rgba(91,141,238,0.3);
+      transform: translateY(-2px);
+    }
+    .link-source {
+      font-size: 0.6rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 0.5rem;
+    }
+    .link-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: #e8f0ff;
+      margin-bottom: 0.4rem;
+      line-height: 1.4;
+    }
+    .link-desc {
+      color: var(--text-muted);
+      font-size: 0.7rem;
+      line-height: 1.7;
+    }
+    .link-arrow {
+      margin-top: 0.8rem;
+      font-size: 0.65rem;
+      color: var(--text-dim);
+      letter-spacing: 0.05em;
+    }
+
+    /* ── CONTACT ── */
+    #contact {
+      text-align: center;
+      padding: 6rem 4rem 8rem;
+    }
+    .contact-inner {
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    .contact-inner p {
+      color: var(--text-muted);
+      font-size: 0.82rem;
+      line-height: 1.9;
+      margin-bottom: 2.5rem;
+    }
+    .contact-links {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 2rem 4rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: relative; z-index: 1;
+    }
+    .footer-text {
+      color: var(--text-dim);
+      font-size: 0.65rem;
+      letter-spacing: 0.08em;
+    }
+    .footer-right {
+      color: var(--text-dim);
+      font-size: 0.65rem;
+      letter-spacing: 0.05em;
+    }
+
+    /* ── ANIMATIONS ── */
+    .fade-up {
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+    .fade-up.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    @media (max-width: 900px) {
+      nav { padding: 1rem 2rem; }
+      .nav-links { gap: 1.5rem; }
+      #hero { padding: 7rem 2rem 3rem; }
+      .hero-inner { flex-direction: column; gap: 2.5rem; text-align: center; }
+      .hero-eyebrow { justify-content: center; }
+      .hero-tags { justify-content: center; }
+      .hero-cta { justify-content: center; }
+      section { padding: 4rem 2rem; }
+      .about-grid, .skills-grid, .projects-grid, .interests-grid, .links-grid { grid-template-columns: 1fr; }
+      .divider { margin: 0 2rem; }
+      footer { flex-direction: column; gap: 0.5rem; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- PASSWORD GATE -->
+<div id="gate">
+  <div class="lock-icon">🔒</div>
+  <div class="logo">Dipanshu Garg</div>
+  <div class="subtitle">Private Site · Enter Passphrase</div>
+  <input type="password" id="pass-input" placeholder="Passphrase..." autofocus/>
+  <div class="error" id="pass-error"></div>
+  <button onclick="tryUnlock()">Enter →</button>
+</div>
+
+<script>
+  const SITE_PASS = 'dipanshu123';
+  function tryUnlock() {
+    const val = document.getElementById('pass-input').value;
+    if (val === SITE_PASS) {
+      document.getElementById('gate').style.display = 'none';
+      document.getElementById('site').style.display = 'block';
+      sessionStorage.setItem('unlocked', '1');
+    } else {
+      document.getElementById('pass-error').textContent = 'Incorrect passphrase. Try again.';
+      document.getElementById('pass-input').value = '';
+      document.getElementById('pass-input').focus();
+    }
+  }
+  document.getElementById('pass-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter') tryUnlock();
+  });
+  if (sessionStorage.getItem('unlocked') === '1') {
+    document.getElementById('gate').style.display = 'none';
+    document.getElementById('site').style.display = 'block';
+  }
+</script>
+
+<!-- MAIN SITE -->
+<div id="site">
+
+<!-- Stars -->
+<div class="stars" id="stars"></div>
+
+<!-- Nav -->
+<nav>
+  <div class="nav-logo">D. Garg</div>
+  <ul class="nav-links">
+    <li><a href="#about">About</a></li>
+    <li><a href="#experience">Experience</a></li>
+    <li><a href="#projects">Projects</a></li>
+    <li><a href="#code">Code</a></li>
+    <li><a href="#research">Research</a></li>
+    <li><a href="#ideas">Ideas</a></li>
+    <li><a href="#links">Links</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+</nav>
+
+<main>
+  <!-- Hero -->
+  <div id="hero">
+    <div class="hero-glow"></div>
+    <div class="hero-inner">
+      <div class="hero-photo">
+        <div class="hero-photo-inner">🪐</div>
+      </div>
+      <div class="hero-text">
+        <div class="hero-eyebrow">Mathematician · Modeler · Data Scientist · Quant</div>
+        <h1>Dipanshu<br/><span>Garg</span></h1>
+        <p class="hero-desc">
+          I build mathematical models to understand complex systems — whether in financial markets,
+          physical sciences, biology, or AI. PhD in Physics. Quantitative Developer at Wells Fargo.
+          Passionate about any problem that can be tamed with mathematics and data.
+        </p>
+        <div class="hero-tags">
+          <span class="tag accent">Mathematical Modelling</span>
+          <span class="tag accent">Quant Finance</span>
+          <span class="tag accent">Machine Learning</span>
+          <span class="tag">Stochastic Processes</span>
+          <span class="tag">Quantum Computing</span>
+          <span class="tag">Biotech · AI</span>
+        </div>
+        <div class="hero-cta">
+          <a href="Dipanshu_CV.pdf" class="btn btn-primary" download>↓ Download CV</a>
+          <a href="#about" class="btn btn-ghost">Explore →</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider"/>
+
+  <section id="about">
+    <div class="fade-up">
+      <div class="section-label">About Me</div>
+      <h2>Mathematics as a<br/>universal language</h2>
+    </div>
+    <div class="about-grid fade-up">
+      <div class="about-text">
+        <p>
+          I'm a <strong>mathematician, modeler, and data scientist</strong> who believes that almost
+          any complex system — whether a financial market, a physical process, a biological network,
+          or an AI pipeline — can be understood and optimised through the right mathematical framework.
+        </p>
+        <p>
+          Currently working as a <strong>Quantitative Developer (AVP)</strong> on the FX Quant Team
+          at <strong>Wells Fargo</strong>, where I design stochastic volatility models, ML-driven
+          risk frameworks, and backtesting pipelines for derivatives and FX markets.
+        </p>
+        <p>
+          My toolkit spans <strong>Bayesian inference, Monte Carlo simulation, stochastic processes,
+          reinforcement learning, and quantum computing</strong>. I'm drawn to hard problems — the kind
+          that require building models from scratch and validating them rigorously against real data.
+        </p>
+        <p>
+          Beyond finance, I'm actively exploring <strong>biotechnology, disease modelling, and AI</strong>
+          — fields where the same mathematical rigour opens entirely new frontiers. This site is my
+          living notebook of work, ideas, and things I find worth sharing.
+        </p>
+      </div>
+      <div class="about-stats">
+        <div class="stat-card">
+          <div class="stat-num">AVP</div>
+          <div class="stat-label">FX Quant Developer · Wells Fargo · Hyderabad</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num">PhD</div>
+          <div class="stat-label">Physics · IISER Pune · Mathematical Modelling</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num">AIR 36</div>
+          <div class="stat-label">CSIR JRF Physical Sciences · National Topper NGPE</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider"/>
+
+  <!-- Skills -->
+  <section id="skills">
+    <div class="fade-up">
+      <div class="section-label">Skills</div>
+      <h2>Tools & Expertise</h2>
+    </div>
+    <div class="skills-grid fade-up">
+      <div class="skill-group">
+        <div class="skill-group-title">Quantitative Finance</div>
+        <div class="skill-list">
+          <span class="skill-item">SLV Model</span>
+          <span class="skill-item">Heston Model</span>
+          <span class="skill-item">Derivatives Pricing</span>
+          <span class="skill-item">Model Risk</span>
+          <span class="skill-item">Stochastic Processes</span>
+          <span class="skill-item">Portfolio Optimisation</span>
+          <span class="skill-item">Monte Carlo</span>
+        </div>
+      </div>
+      <div class="skill-group">
+        <div class="skill-group-title">Machine Learning & AI</div>
+        <div class="skill-list">
+          <span class="skill-item">Bayesian Inference</span>
+          <span class="skill-item">CNN · VAE</span>
+          <span class="skill-item">Reinforcement Learning</span>
+          <span class="skill-item">Symbolic Regression</span>
+          <span class="skill-item">NLP · RAG</span>
+          <span class="skill-item">Time Series</span>
+          <span class="skill-item">PyTorch · TensorFlow</span>
+        </div>
+      </div>
+      <div class="skill-group">
+        <div class="skill-group-title">Programming & Tools</div>
+        <div class="skill-list">
+          <span class="skill-item">Python</span>
+          <span class="skill-item">R</span>
+          <span class="skill-item">C++</span>
+          <span class="skill-item">Fortran</span>
+          <span class="skill-item">Qiskit</span>
+          <span class="skill-item">Git · Linux</span>
+          <span class="skill-item">LaTeX · Jupyter</span>
+          <span class="skill-item">NumPy · SciPy · Pandas</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider"/>
+
+  <!-- Experience (Corporate) -->
+  <section id="experience">
+    <div class="fade-up">
+      <div class="section-label">Experience</div>
+      <h2>Professional & Industry Work</h2>
+    </div>
+    <div class="timeline fade-up">
+      <div class="timeline-item">
+        <div class="timeline-date">May 2024 – Present</div>
+        <div class="timeline-role">Quantitative Developer (AVP) — FX Quant Team</div>
+        <div class="timeline-org">Wells Fargo · Hyderabad, India</div>
+        <div class="timeline-desc">
+          Designed and optimised SLV (Stochastic Local Volatility) and Heston model backtesting
+          pipelines for FX risk modelling. Led end-to-end development of an ML-driven framework for
+          distressed bond risk calibration and model validation. Integrated stress testing protocols
+          aligned with internal model governance and regulatory compliance.
+        </div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-date">Hackathon</div>
+        <div class="timeline-role">AI Agent Developer — vMigrate</div>
+        <div class="timeline-org">Microsoft Hackathon for AI Agents</div>
+        <div class="timeline-desc">
+          Built vMigrate — an intelligent agent designed to streamline data migration from local
+          infrastructure to cloud storage platforms using modern AI agent frameworks.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider"/>
+
+  <!-- Research (Academic — de-emphasised as foundational) -->
+  <section id="research">
+    <div class="fade-up">
+      <div class="section-label">Academic Background</div>
+      <h2>Foundations in Science</h2>
+      <p style="color:var(--text-muted); font-size:0.8rem; max-width:600px; margin-top:-1.5rem; margin-bottom:2.5rem; line-height:1.8;">
+        My academic background in physics and astrophysics forms the mathematical foundation
+        for everything I do — rigorous modelling, statistical inference, and working with complex data.
+      </p>
+    </div>
+    <div class="timeline fade-up">
+      <div class="timeline-item">
+        <div class="timeline-date">Apr 2022 – May 2024</div>
+        <div class="timeline-role">Senior Research Fellow — ML & Cosmology</div>
+        <div class="timeline-org">Raman Research Institute · Bengaluru</div>
+        <div class="timeline-desc">
+          Built Bayesian inference and ML tools for large-scale scientific datasets. Published in
+          The Astrophysical Journal (2023). Developed VAE-based models and time series forecasting pipelines.
+        </div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-date">Aug 2019 – May 2024</div>
+        <div class="timeline-role">PhD in Physics — IISER Pune</div>
+        <div class="timeline-org">Advisor: Prof. Tarun Souradeep · Astrophysics & ML</div>
+        <div class="timeline-desc">
+          Doctoral training in applied mathematics, statistical modelling, and ML pipelines.
+          Teaching Assistant for Bayesian Inference, Quantum Mechanics, and Computing courses.
+        </div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-date">Aug 2017 – Jul 2019</div>
+        <div class="timeline-role">M.Sc. Computational Physics</div>
+        <div class="timeline-org">Harish-Chandra Research Institute · Advisor: Prof. Ashoke Sen</div>
+        <div class="timeline-desc">Minor in Cosmology. Advanced training in mathematical methods and scientific computing.</div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-date">Aug 2014 – May 2017</div>
+        <div class="timeline-role">B.Sc. (Hons.) Physics — First Class</div>
+        <div class="timeline-org">Panjab University, Chandigarh</div>
+        <div class="timeline-desc">National Topper NGPE · AIR 36 CSIR JRF Physical Sciences.</div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider"/>
+
+  <!-- Projects -->
+  <section id="projects">
+    <div class="fade-up">
+      <div class="section-label">Projects</div>
+      <h2>Work & Repositories</h2>
+    </div>
+    <div class="projects-grid fade-up">
+      <a href="#" class="project-card">
+        <div class="project-icon">🌌</div>
+        <div class="project-title">Generalised Angular Correlation Functions (CMB)</div>
+        <div class="project-desc">
+          Published Python tools for detecting statistical isotropy violations in CMB data using
+          generalised isotropic angular correlation functions. Validated on real Planck satellite datasets.
+          Published in The Astrophysical Journal (2023).
+        </div>
+        <div class="project-tags">
+          <span class="project-tag">Python</span>
+          <span class="project-tag">CMB · Planck</span>
+          <span class="project-tag">Bayesian</span>
+          <span class="project-tag">Published · ApJ</span>
+        </div>
+        <div class="project-footer">View Repository →</div>
+      </a>
+      <a href="#" class="project-card">
+        <div class="project-icon">⚛️</div>
+        <div class="project-title">Quantum Algorithms for Financial Optimisation</div>
+        <div class="project-desc">
+          Built quantum-inspired models using Qiskit — including quantum annealing and Grover's algorithm —
+          to enhance derivative pricing and portfolio optimisation workflows.
+        </div>
+        <div class="project-tags">
+          <span class="project-tag">Qiskit</span>
+          <span class="project-tag">Quantum Computing</span>
+          <span class="project-tag">Derivatives Pricing</span>
+          <span class="project-tag">Portfolio Optimisation</span>
+        </div>
+        <div class="project-footer">View Repository →</div>
+      </a>
+      <a href="#" class="project-card">
+        <div class="project-icon">🧬</div>
+        <div class="project-title">Disease Progression Modelling — Bayesian AI</div>
+        <div class="project-desc">
+          Studied disease progression using Directed Acyclic Graphs (DAGs) and modelled underlying
+          biomarker correlations with Bayesian ML algorithms to gain deeper insights into disease dynamics.
+        </div>
+        <div class="project-tags">
+          <span class="project-tag">Python</span>
+          <span class="project-tag">Bayesian ML</span>
+          <span class="project-tag">DAGs</span>
+          <span class="project-tag">Biotech</span>
+        </div>
+        <div class="project-footer">View Repository →</div>
+      </a>
+      <a href="#" class="project-card">
+        <div class="project-icon">⚡</div>
+        <div class="project-title">RL for Energy Optimisation in Heat Engines</div>
+        <div class="project-desc">
+          Designed reinforcement learning models to optimise energy efficiency in thermodynamic systems.
+          Developed deep learning pipelines in Python for control and optimisation tasks.
+        </div>
+        <div class="project-tags">
+          <span class="project-tag">Reinforcement Learning</span>
+          <span class="project-tag">Python</span>
+          <span class="project-tag">Thermodynamics</span>
+          <span class="project-tag">Deep Learning</span>
+        </div>
+        <div class="project-footer">View Repository →</div>
+      </a>
+      <a href="#" class="project-card">
+        <div class="project-icon">☁️</div>
+        <div class="project-title">vMigrate — AI Agent for Cloud Migration</div>
+        <div class="project-desc">
+          Built at the Microsoft Hackathon for AI Agents. An intelligent agent designed to streamline
+          data migration from local infrastructure to cloud storage platforms.
+        </div>
+        <div class="project-tags">
+          <span class="project-tag">AI Agents</span>
+          <span class="project-tag">Microsoft</span>
+          <span class="project-tag">Cloud</span>
+          <span class="project-tag">Hackathon</span>
+        </div>
+        <div class="project-footer">View Repository →</div>
+      </a>
+      <a href="#" class="project-card">
+        <div class="project-icon">🧠</div>
+        <div class="project-title">VAE for Cosmological Simulations</div>
+        <div class="project-desc">
+          Applied CNN-based Variational Autoencoder to inpaint masked regions in cosmological
+          simulations. Developed Python code for spherical symmetry masked region inpainting.
+        </div>
+        <div class="project-tags">
+          <span class="project-tag">PyTorch</span>
+          <span class="project-tag">CNN · VAE</span>
+          <span class="project-tag">Cosmology</span>
+          <span class="project-tag">In Progress</span>
+        </div>
+        <div class="project-footer">View Repository →</div>
+      </a>
+    </div>
+  </section>
+
+  <hr class="divider"/>
+
+  <!-- Code -->
+  <section id="code">
+    <div class="fade-up">
+      <div class="section-label">Code</div>
+      <h2>Interactive & Web Projects</h2>
+    </div>
+    <div class="projects-grid fade-up">
+      <a href="#" class="project-card">
+        <div class="project-icon">🌐</div>
+        <div class="project-title">Web Demo — Placeholder</div>
+        <div class="project-desc">
+          Add your first web-based or interactive project here. This could be a live demo,
+          a data visualisation, a web app, or an interactive notebook.
+        </div>
+        <div class="project-tags">
+          <span class="project-tag">Coming Soon</span>
+        </div>
+        <div class="project-footer">Live Demo →</div>
+      </a>
+      <a href="#" class="project-card">
+        <div class="project-icon">📊</div>
+        <div class="project-title">Data Visualisation — Placeholder</div>
+        <div class="project-desc">
+          An interactive data visualisation or dashboard. Replace with your actual
+          project link once it's ready to share publicly.
+        </div>
+        <div class="project-tags">
+          <span class="project-tag">Coming Soon</span>
+        </div>
+        <div class="project-footer">Live Demo →</div>
+      </a>
+      <a href="#" class="project-card">
+        <div class="project-icon">🤖</div>
+        <div class="project-title">AI Tool — Placeholder</div>
+        <div class="project-desc">
+          A web-accessible AI or ML tool. Add the link and description once
+          your project is deployed and accessible.
+        </div>
+        <div class="project-tags">
+          <span class="project-tag">Coming Soon</span>
+        </div>
+        <div class="project-footer">Live Demo →</div>
+      </a>
+    </div>
+  </section>
+
+  <hr class="divider"/>
+
+  <!-- Interests -->
+  <section id="interests">
+    <div class="fade-up">
+      <div class="section-label">Interests</div>
+      <h2>What drives me</h2>
+    </div>
+    <div class="interests-grid fade-up">
+      <div class="interest-card">
+        <div class="interest-icon">📐</div>
+        <div class="interest-title">Mathematical Modelling</div>
+        <div class="interest-desc">
+          Building models from first principles — stochastic processes, differential equations,
+          Bayesian frameworks — applied to any system that yields to mathematical structure.
+        </div>
+      </div>
+      <div class="interest-card">
+        <div class="interest-icon">📊</div>
+        <div class="interest-title">Quantitative Finance</div>
+        <div class="interest-desc">
+          Derivatives pricing, volatility modelling, risk frameworks, and the deep mathematics
+          underlying financial markets and instruments.
+        </div>
+      </div>
+      <div class="interest-card">
+        <div class="interest-icon">🤖</div>
+        <div class="interest-title">AI & Machine Learning</div>
+        <div class="interest-desc">
+          Reinforcement learning, Bayesian ML, NLP, RAG systems, and quantum computing —
+          especially where these intersect with scientific or financial problems.
+        </div>
+      </div>
+      <div class="interest-card">
+        <div class="interest-icon">🧬</div>
+        <div class="interest-title">Biotechnology</div>
+        <div class="interest-desc">
+          Disease progression modelling, biological network dynamics, and applying
+          mathematical frameworks from physics and finance to living systems.
+        </div>
+      </div>
+      <div class="interest-card">
+        <div class="interest-icon">⚛️</div>
+        <div class="interest-title">Quantum Computing</div>
+        <div class="interest-desc">
+          Quantum algorithms for optimisation and simulation — particularly Qiskit-based
+          approaches to portfolio optimisation and derivative pricing.
+        </div>
+      </div>
+      <div class="interest-card">
+        <div class="interest-icon">📚</div>
+        <div class="interest-title">Reading & Ideas</div>
+        <div class="interest-desc">
+          Constantly reading across mathematics, complexity theory, economics, and biology.
+          This site is where those ideas get distilled and shared.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider"/>
+
+  <!-- Ideas / Blog -->
+  <section id="ideas">
+    <div class="fade-up">
+      <div class="section-label">Ideas</div>
+      <h2>Thoughts & Writing</h2>
+    </div>
+    <div class="blog-feed fade-up">
+      <div class="blog-post">
+        <div class="blog-date">Coming Soon</div>
+        <div class="blog-content">
+          <div class="blog-title">What cosmology taught me about financial markets</div>
+          <div class="blog-snippet">
+            Both fields deal with noisy, high-dimensional data and require building models
+            from first principles. The intellectual tools transfer more than you'd think...
+          </div>
+          <span class="blog-tag">Finance · Physics</span>
+        </div>
+      </div>
+      <div class="blog-post">
+        <div class="blog-date">Coming Soon</div>
+        <div class="blog-content">
+          <div class="blog-title">On the physics of biological computation</div>
+          <div class="blog-snippet">
+            Can the mathematical frameworks we use to describe the cosmos help us
+            understand how living systems process information? A first look...
+          </div>
+          <span class="blog-tag">Biotechnology · Physics</span>
+        </div>
+      </div>
+      <div class="blog-post">
+        <div class="blog-date">Coming Soon</div>
+        <div class="blog-content">
+          <div class="blog-title">Market making in spot: a quant's perspective</div>
+          <div class="blog-snippet">
+            A deep dive into the mechanics of market making, spread modelling,
+            and how to think about liquidity provision as a quantitative discipline...
+          </div>
+          <span class="blog-tag">Quant Finance</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider"/>
+
+  <!-- Interesting Links -->
+  <section id="links">
+    <div class="fade-up">
+      <div class="section-label">Interesting Links</div>
+      <h2>Curated Resources</h2>
+    </div>
+    <div class="links-grid fade-up">
+      <a href="#" class="link-card">
+        <div class="link-source">Cosmology</div>
+        <div class="link-title">Planck Collaboration Papers</div>
+        <div class="link-desc">The definitive observational cosmology results from the Planck satellite mission.</div>
+        <div class="link-arrow">↗ Link Placeholder</div>
+      </a>
+      <a href="#" class="link-card">
+        <div class="link-source">Quant Finance</div>
+        <div class="link-title">Market Microstructure Reading List</div>
+        <div class="link-desc">Essential papers on price formation, liquidity, and market making dynamics.</div>
+        <div class="link-arrow">↗ Link Placeholder</div>
+      </a>
+      <a href="#" class="link-card">
+        <div class="link-source">Biotechnology</div>
+        <div class="link-title">Biological Computation Papers</div>
+        <div class="link-desc">Frontier research on bio-computation, synthetic biology, and living systems as computers.</div>
+        <div class="link-arrow">↗ Link Placeholder</div>
+      </a>
+      <a href="#" class="link-card">
+        <div class="link-source">Physics</div>
+        <div class="link-title">Feynman Lectures Online</div>
+        <div class="link-desc">The complete Feynman Lectures on Physics — timeless and freely available.</div>
+        <div class="link-arrow">↗ Link Placeholder</div>
+      </a>
+      <a href="#" class="link-card">
+        <div class="link-source">Data Science</div>
+        <div class="link-title">Probabilistic Machine Learning</div>
+        <div class="link-desc">Kevin Murphy's comprehensive textbook on probabilistic approaches to machine learning.</div>
+        <div class="link-arrow">↗ Link Placeholder</div>
+      </a>
+      <a href="#" class="link-card">
+        <div class="link-source">Your Pick</div>
+        <div class="link-title">Add Your Favourite Resource</div>
+        <div class="link-desc">A placeholder for a link you find interesting or useful. Update this anytime.</div>
+        <div class="link-arrow">↗ Link Placeholder</div>
+      </a>
+    </div>
+  </section>
+
+  <hr class="divider"/>
+
+  <!-- Contact -->
+  <section id="contact">
+    <div class="contact-inner fade-up">
+      <div class="section-label" style="justify-content:center;">Contact</div>
+      <h2 style="font-size:clamp(2rem,5vw,3.5rem); margin-bottom:1rem;">Let's connect</h2>
+      <p>
+        Whether you want to talk mathematical modelling, quantitative finance, AI, biotech,
+        or just swap interesting ideas — I'm always happy to hear from curious people.
+      </p>
+      <div class="contact-links">
+        <a href="mailto:dipanshu.ws@gmail.com" class="btn btn-primary">✉ Email Me</a>
+        <a href="https://linkedin.com/in/dipanshu-garg-9330ba278" target="_blank" class="btn btn-ghost">LinkedIn ↗</a>
+        <a href="#" class="btn btn-ghost">GitHub ↗</a>
+        <a href="#" class="btn btn-ghost">Twitter ↗</a>
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider"/>
+
+  <!-- Private Vault -->
+  <section id="vault" style="max-width:600px; margin:0 auto; padding:4rem 2rem 6rem; text-align:center;">
+    <div class="fade-up">
+      <div class="section-label" style="justify-content:center;">Private</div>
+      <h2 style="font-size:1.8rem; margin-bottom:0.5rem;">Personal Vault</h2>
+      <p style="color:var(--text-muted); font-size:0.78rem; margin-bottom:2rem;">
+        Private area for personal documents, notes, and reading list. Access restricted.
+      </p>
+      <div id="vault-lock">
+        <input type="password" id="vault-pass" placeholder="Enter passphrase..."
+          style="background:var(--surface); border:1px solid var(--border); border-radius:4px;
+          color:var(--text); font-family:'DM Mono',monospace; font-size:0.78rem;
+          padding:0.75rem 1.2rem; width:260px; outline:none; letter-spacing:0.05em;"/>
+        <button onclick="unlockVault()"
+          style="margin-left:0.8rem; background:var(--accent); color:#fff; border:none;
+          border-radius:4px; padding:0.75rem 1.4rem; font-family:'DM Mono',monospace;
+          font-size:0.72rem; letter-spacing:0.1em; cursor:pointer; text-transform:uppercase;">
+          Unlock →
+        </button>
+        <p id="vault-error" style="color:#e05c5c; font-size:0.68rem; margin-top:0.8rem; display:none;">
+          Incorrect passphrase.
+        </p>
+      </div>
+      <div id="vault-content" style="display:none; text-align:left; margin-top:2rem;">
+        <div class="blog-feed">
+          <div class="blog-post" style="cursor:default;">
+            <div class="blog-date">📄 Docs</div>
+            <div class="blog-content">
+              <div class="blog-title">Personal Documents</div>
+              <div class="blog-snippet">Add your private document links here — certificates, notes, drafts.</div>
+            </div>
+          </div>
+          <div class="blog-post" style="cursor:default;">
+            <div class="blog-date">📚 Books</div>
+            <div class="blog-content">
+              <div class="blog-title">Reading List</div>
+              <div class="blog-snippet">Books you're currently reading or have read. Add titles and notes here.</div>
+            </div>
+          </div>
+          <div class="blog-post" style="cursor:default;">
+            <div class="blog-date">🔑 Notes</div>
+            <div class="blog-content">
+              <div class="blog-title">Private Notes</div>
+              <div class="blog-snippet">Personal notes, reminders, and ideas not ready to share publicly.</div>
+            </div>
+          </div>
+        </div>
+        <button onclick="lockVault()" style="margin-top:1.5rem; background:transparent; border:1px solid var(--border);
+          color:var(--text-muted); border-radius:4px; padding:0.5rem 1rem; font-family:'DM Mono',monospace;
+          font-size:0.65rem; cursor:pointer; letter-spacing:0.1em; text-transform:uppercase;">
+          🔒 Lock
+        </button>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="footer-text">© 2026 Dipanshu Garg · All rights reserved</div>
+  <div class="footer-right">Built with curiosity & code</div>
+</footer>
+
+<script>
+  // Stars
+  const starsEl = document.getElementById('stars');
+  for (let i = 0; i < 120; i++) {
+    const s = document.createElement('div');
+    s.className = 'star';
+    const size = Math.random() * 2 + 0.5;
+    s.style.cssText = `
+      left: ${Math.random() * 100}%;
+      top: ${Math.random() * 100}%;
+      width: ${size}px; height: ${size}px;
+      --d: ${3 + Math.random() * 5}s;
+      --delay: -${Math.random() * 8}s;
+      --min-op: ${0.05 + Math.random() * 0.1};
+      --max-op: ${0.4 + Math.random() * 0.5};
+    `;
+    starsEl.appendChild(s);
+  }
+
+  // Vault
+  const VAULT_PASS = 'dipanshu2024'; // Change this to your own passphrase!
+  function unlockVault() {
+    const input = document.getElementById('vault-pass').value;
+    if (input === VAULT_PASS) {
+      document.getElementById('vault-lock').style.display = 'none';
+      document.getElementById('vault-content').style.display = 'block';
+      document.getElementById('vault-error').style.display = 'none';
+    } else {
+      document.getElementById('vault-error').style.display = 'block';
+    }
+  }
+  function lockVault() {
+    document.getElementById('vault-lock').style.display = 'block';
+    document.getElementById('vault-content').style.display = 'none';
+    document.getElementById('vault-pass').value = '';
+  }
+  document.getElementById('vault-pass').addEventListener('keydown', e => {
+    if (e.key === 'Enter') unlockVault();
+  });
+
+
+  // Stars
+  const starsEl = document.getElementById('stars');
+  for (let i = 0; i < 120; i++) {
+    const s = document.createElement('div');
+    s.className = 'star';
+    const size = Math.random() * 2 + 0.5;
+    s.style.cssText = `
+      left: ${Math.random() * 100}%;
+      top: ${Math.random() * 100}%;
+      width: ${size}px; height: ${size}px;
+      --d: ${3 + Math.random() * 5}s;
+      --delay: -${Math.random() * 8}s;
+      --min-op: ${0.05 + Math.random() * 0.1};
+      --max-op: ${0.4 + Math.random() * 0.5};
+    `;
+    starsEl.appendChild(s);
+  }
+
+  // Fade-up on scroll
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
+</script>
+</div><!-- end #site -->
+</body>
+</html>
